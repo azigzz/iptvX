@@ -83,7 +83,12 @@ class AppPreferences(private val context: Context) {
 
     private fun normalizedPanelUrl(savedUrl: String?): String {
         val url = savedUrl?.trim()?.trimEnd('/').orEmpty()
-        return if (url.isBlank() || url == "http://10.0.2.2:3000" || url == "http://localhost:3000") {
+        return if (
+            url.isBlank() ||
+            url == "http://10.0.2.2:3000" ||
+            url == "http://localhost:3000" ||
+            url.contains("SEU-PROJETO")
+        ) {
             BuildConfig.DEFAULT_PANEL_URL
         } else {
             url
