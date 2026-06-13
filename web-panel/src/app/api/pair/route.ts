@@ -20,9 +20,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
+  const virtualMac = normalizeVirtualMac(parsed.data.virtualMac);
+  if (!virtualMac) {
+    return NextResponse.json({ error: "MAC invalido" }, { status: 400 });
+  }
+
   const device = await prisma.device.findUnique({
     where: {
-      virtualMac: parsed.data.virtualMac.trim().toUpperCase()
+      virtualMac
     },
     select: { id: true, deviceId: true, virtualMac: true }
   });
@@ -40,4 +45,10 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ ok: true, deviceId: device.id, virtualMac: device.virtualMac });
+}
+
+function normalizeVirtualMac(value: string) {
+  const compact = value.toUpperCase().replace(/[^0-9A-F]/g, "").slice(0, 12);
+  if (compact.length !== 12) return "";
+  return compact.replace(/(.{2})(?=.)/g, "$1:");
 }

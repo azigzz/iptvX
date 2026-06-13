@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.iptvx.app.IptvUiState
 import com.iptvx.app.MainViewModel
+import com.iptvx.app.R
 import com.iptvx.app.data.model.PlaybackItem
 
 private enum class Screen {
@@ -67,17 +68,10 @@ fun IptvApp(state: IptvUiState, viewModel: MainViewModel) {
             )
             Screen.HOME -> PaddedScreen { HomeScreen(
                     state = state,
-                    onSync = { viewModel.syncNow() },
-                    onPairing = { screen = Screen.PAIRING },
-                    onManual = { screen = Screen.MANUAL },
                     onLive = { screen = Screen.LIVE },
                     onVod = { screen = Screen.VOD },
                     onSeries = { screen = Screen.SERIES },
-                    onEpg = { screen = Screen.EPG },
-                    onFavorites = { screen = Screen.FAVORITES },
-                    onHistory = { screen = Screen.HISTORY },
-                    onSettings = { screen = Screen.SETTINGS },
-                    onPlaylistSelected = { viewModel.selectPlaylist(it) }
+                    onSettings = { screen = Screen.SETTINGS }
                 )
             }
             Screen.LIVE -> PaddedScreen { LiveTvScreen(
@@ -112,14 +106,20 @@ fun IptvApp(state: IptvUiState, viewModel: MainViewModel) {
                     state = state,
                     onBack = { screen = Screen.HOME },
                     onPanelUrl = viewModel::setPanelUrl,
-                    onPerformanceMode = viewModel::setPerformanceMode
+                    onPerformanceMode = viewModel::setPerformanceMode,
+                    onManual = { screen = Screen.MANUAL },
+                    onPairing = { screen = Screen.PAIRING },
+                    onEpg = { screen = Screen.EPG },
+                    onFavorites = { screen = Screen.FAVORITES },
+                    onHistory = { screen = Screen.HISTORY },
+                    onSync = { viewModel.syncNow() }
                 )
             }
-            Screen.VOD -> PaddedScreen { PlaceholderScreen("Filmes", onBack = { screen = Screen.HOME }) }
-            Screen.SERIES -> PaddedScreen { PlaceholderScreen("Series", onBack = { screen = Screen.HOME }) }
-            Screen.EPG -> PaddedScreen { PlaceholderScreen("EPG", onBack = { screen = Screen.HOME }) }
-            Screen.FAVORITES -> PaddedScreen { PlaceholderScreen("Favoritos", onBack = { screen = Screen.HOME }) }
-            Screen.HISTORY -> PaddedScreen { PlaceholderScreen("Historico", onBack = { screen = Screen.HOME }) }
+            Screen.VOD -> PaddedScreen { PlaceholderScreen("Filmes", R.drawable.ic_movies, onBack = { screen = Screen.HOME }) }
+            Screen.SERIES -> PaddedScreen { PlaceholderScreen("Series", R.drawable.ic_series, onBack = { screen = Screen.HOME }) }
+            Screen.EPG -> PaddedScreen { PlaceholderScreen("EPG", R.drawable.ic_epg, onBack = { screen = Screen.HOME }) }
+            Screen.FAVORITES -> PaddedScreen { PlaceholderScreen("Favoritos", R.drawable.ic_favorite, onBack = { screen = Screen.HOME }) }
+            Screen.HISTORY -> PaddedScreen { PlaceholderScreen("Historico", R.drawable.ic_history, onBack = { screen = Screen.HOME }) }
         }
     }
 }

@@ -1,89 +1,164 @@
 package com.iptvx.app.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.iptvx.app.IptvUiState
-import com.iptvx.app.data.model.PlaylistConfig
+import com.iptvx.app.R
 
-@OptIn(ExperimentalLayoutApi::class)
+private val HomeYellow = Color(0xFFF4D21B)
+
 @Composable
 fun HomeScreen(
     state: IptvUiState,
-    onSync: () -> Unit,
-    onPairing: () -> Unit,
-    onManual: () -> Unit,
     onLive: () -> Unit,
     onVod: () -> Unit,
     onSeries: () -> Unit,
-    onEpg: () -> Unit,
-    onFavorites: () -> Unit,
-    onHistory: () -> Unit,
-    onSettings: () -> Unit,
-    onPlaylistSelected: (PlaylistConfig) -> Unit
+    onSettings: () -> Unit
 ) {
-    Column(Modifier.fillMaxSize()) {
-        ScreenHeader(
-            title = "iptvX",
-            subtitle = state.virtualMac ?: state.deviceId,
-            trailing = { PrimaryButton("Sincronizar", enabled = !state.loading, onClick = onSync) }
-        )
-        Spacer(Modifier.height(28.dp))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            TvCardButton("TV ao Vivo", "Canais e categorias", Modifier.width(230.dp), onLive)
-            TvCardButton("Filmes", "VOD", Modifier.width(230.dp), onVod)
-            TvCardButton("Series", "Temporadas e episodios", Modifier.width(230.dp), onSeries)
-            TvCardButton("EPG", "Grade de programacao", Modifier.width(230.dp), onEpg)
-            TvCardButton("Favoritos", "Conteudos salvos", Modifier.width(230.dp), onFavorites)
-            TvCardButton("Historico", "Continuar assistindo", Modifier.width(230.dp), onHistory)
-            TvCardButton("Listas", "Adicionar manualmente", Modifier.width(230.dp), onManual)
-            TvCardButton("Configuracoes", "Player e dispositivo", Modifier.width(230.dp), onSettings)
-        }
-
-        Spacer(Modifier.height(28.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
-            SecondaryButton("Tela de pareamento", onClick = onPairing)
-            SecondaryButton("Adicionar lista manual", onClick = onManual)
-        }
-        Spacer(Modifier.height(24.dp))
-        Text("Listas ativas", fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.height(8.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(state.playlists) { playlist ->
-                TvCardButton(
-                    title = playlist.name,
-                    subtitle = playlist.type.name,
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = { onPlaylistSelected(playlist) }
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF101318), Color(0xFF08090C), Color(0xFF050608))
                 )
-            }
-            if (state.playlists.isEmpty()) {
-                item {
-                    Text(
-                        "Nenhuma lista sincronizada.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            .padding(horizontal = 30.dp, vertical = 24.dp)
+    ) {
+        val compact = maxWidth < 560.dp
+        val cardHeight = if (compact) 132.dp else 176.dp
+        val cardWidth = if (compact) maxWidth - 60.dp else (maxWidth - 108.dp) / 3
+
+        Column(Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Image(
+                        painter = painterResource(R.drawable.brand_mark),
+                        contentDescription = null,
+                        modifier = Modifier.size(46.dp)
                     )
+                    Column {
+                        Text("IPTVX", color = HomeYellow, fontSize = 27.sp, fontWeight = FontWeight.Black)
+                        Text(
+                            state.selectedPlaylist?.name ?: state.playlists.firstOrNull()?.name ?: "Pronto para assistir",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    IconPillButton(icon = R.drawable.ic_settings, text = "Ajustes", onClick = onSettings)
                 }
             }
+
+            Spacer(Modifier.height(if (compact) 26.dp else 42.dp))
+
+            if (compact) {
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth()) {
+                    MainFeatureCard("TV", "Canais ao vivo", R.drawable.ic_live_tv, Modifier.width(cardWidth).height(cardHeight), onLive)
+                    MainFeatureCard("Filmes", "Biblioteca VOD", R.drawable.ic_movies, Modifier.width(cardWidth).height(cardHeight), onVod)
+                    MainFeatureCard("Series", "Temporadas e episodios", R.drawable.ic_series, Modifier.width(cardWidth).height(cardHeight), onSeries)
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.fillMaxWidth()) {
+                    MainFeatureCard("TV", "Canais ao vivo", R.drawable.ic_live_tv, Modifier.width(cardWidth).height(cardHeight), onLive)
+                    MainFeatureCard("Filmes", "Biblioteca VOD", R.drawable.ic_movies, Modifier.width(cardWidth).height(cardHeight), onVod)
+                    MainFeatureCard("Series", "Temporadas e episodios", R.drawable.ic_series, Modifier.width(cardWidth).height(cardHeight), onSeries)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MainFeatureCard(
+    title: String,
+    subtitle: String,
+    icon: Int,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+    Card(
+        onClick = onClick,
+        interactionSource = interaction,
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(if (focused) 3.dp else 1.dp, if (focused) HomeYellow else Color(0xFF2F3440)),
+        colors = CardDefaults.cardColors(containerColor = if (focused) Color(0xFF171A20) else Color(0xFF0F1218)),
+        modifier = modifier.focusable(interactionSource = interaction)
+    ) {
+        Box(Modifier.fillMaxSize().padding(22.dp)) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .size(54.dp)
+            )
+            Column(Modifier.align(Alignment.BottomStart)) {
+                Text(title, fontSize = 31.sp, fontWeight = FontWeight.Black, color = Color.White)
+                Text(subtitle, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun IconPillButton(icon: Int, text: String, enabled: Boolean = true, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF11151C)),
+        border = BorderStroke(1.dp, Color(0xFF2F3440))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(painter = painterResource(icon), contentDescription = null, modifier = Modifier.size(22.dp))
+            Text(text, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

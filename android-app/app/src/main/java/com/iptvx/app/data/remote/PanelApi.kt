@@ -8,6 +8,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.timeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -44,7 +45,13 @@ class PanelApi(
     }
 
     suspend fun downloadText(url: String): String {
-        return client.get(url).bodyAsText()
+        return client.get(url) {
+            timeout {
+                connectTimeoutMillis = 15_000
+                requestTimeoutMillis = 90_000
+                socketTimeoutMillis = 60_000
+            }
+        }.bodyAsText()
     }
 
     companion object {

@@ -10,7 +10,7 @@ export async function testPlaylist(payload: {
 }) {
   if (payload.type === "M3U") {
     if (!payload.m3uUrl) return { ok: false, message: "URL M3U ausente" };
-    const response = await fetch(payload.m3uUrl, { redirect: "follow", signal: AbortSignal.timeout(10_000) });
+    const response = await fetch(payload.m3uUrl, { redirect: "follow", signal: AbortSignal.timeout(30_000) });
     if (!response.ok) return { ok: false, message: `Servidor respondeu HTTP ${response.status}` };
     const text = await response.text();
     const items = parseM3u(text);

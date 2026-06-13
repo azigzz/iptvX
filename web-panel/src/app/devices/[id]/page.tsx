@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { PlaylistForm } from "@/components/playlist-form";
 import { PlaylistRowActions } from "@/components/playlist-row-actions";
 import { formatDateTime, onlineState } from "@/components/ui-format";
+import { shortNumericDeviceId } from "@/lib/device-display-id";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export default async function DeviceDetailPage({ params }: { params: Promise<{ i
   });
   if (!device) notFound();
   const state = onlineState(device.lastSeenAt);
+  const displayDeviceId = shortNumericDeviceId(device.deviceId);
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8">
@@ -29,6 +31,7 @@ export default async function DeviceDetailPage({ params }: { params: Promise<{ i
           <h1 className="mt-2 text-3xl font-semibold">{device.virtualMac}</h1>
           <dl className="mt-5 grid gap-3 text-sm">
             <Info label="Status" value={state.label} />
+            <Info label="ID do app" value={displayDeviceId} />
             <Info label="Device ID" value={device.deviceId} />
             <Info label="Modelo" value={`${device.manufacturer || "?"} ${device.model || ""}`} />
             <Info label="Android" value={device.androidVersion || "-"} />
@@ -39,7 +42,7 @@ export default async function DeviceDetailPage({ params }: { params: Promise<{ i
           </dl>
         </section>
 
-        <section className="rounded-lg border border-line bg-panel p-5">
+        <section id="add-playlist" className="scroll-mt-24 rounded-lg border border-line bg-panel p-5">
           <h2 className="text-xl font-semibold">Adicionar playlist</h2>
           <PlaylistForm deviceId={device.id} />
         </section>

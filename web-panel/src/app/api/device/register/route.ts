@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
   const existing = await prisma.device.findUnique({
     where: { deviceId: parsed.data.deviceId },
-    select: { id: true, deviceTokenHash: true, pairedAt: true }
+    select: { id: true, pairedAt: true }
   });
 
   const device = await prisma.device.upsert({
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       virtualMac,
       pairingCodeHash: hashPairingCode(pairingCode),
       pairingExpiresAt: pairingExpiresAt(),
-      deviceTokenHash: existing?.deviceTokenHash || hashDeviceToken(deviceToken),
+      deviceTokenHash: hashDeviceToken(deviceToken),
       lastSeenAt: new Date()
     },
     create: {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     pairingExpiresAt: device.pairingExpiresAt,
     panelUrl: panelUrlFromRequest(request),
     paired: Boolean(device.pairedAt || existing?.pairedAt),
-    deviceToken: existing?.deviceTokenHash ? undefined : deviceToken
+    deviceToken
   });
 }
 

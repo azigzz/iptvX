@@ -82,7 +82,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             while (true) {
-                delay(60 * 1000L)
+                delay(if (_uiState.value.playlists.isEmpty()) 15 * 1000L else 60 * 1000L)
                 syncNow(silent = true)
             }
         }
@@ -103,6 +103,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _uiState.update {
                         it.copy(loading = false, message = "Dispositivo registrado. Use o codigo exibido para parear.")
                     }
+                    syncNow(silent = true)
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(loading = false, error = friendlyError(error)) }

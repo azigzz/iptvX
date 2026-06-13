@@ -60,7 +60,7 @@ class IptvRepository(
             val response = api.sync(prefs.panelUrl, prefs.deviceId, token)
             preferences.markPaired()
             response.playlists.forEach { playlist ->
-                cachePlaylistContent(playlist)
+                runCatching { cachePlaylistContent(playlist) }
             }
             response.playlists
         }
@@ -140,6 +140,9 @@ class IptvRepository(
         val username = playlist.username ?: return
         val password = playlist.password ?: return
         val client = XtreamClient(serverUrl, username, password)
+        val categoryNames = runCatching {
+            client.liveCategories().associate { it.id to it.name }
+        }.getOrDefault(emptyMap())
         val streams = client.liveStreams()
         dao.clearPlaylistChannels(playlist.id)
         streams.chunked(500).forEach { chunk ->
@@ -152,7 +155,7 @@ class IptvRepository(
                     searchableName = stream.name.lowercase(),
                     url = url,
                     logoUrl = stream.streamIcon,
-                    category = stream.categoryId ?: "Live",
+                    category = stream.categoryId?.let { categoryNames[it] ?: it } ?: "Live",
                     tvgId = stream.id,
                     sourceType = "XTREAM"
                 )
