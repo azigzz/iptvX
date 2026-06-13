@@ -60,8 +60,14 @@ export async function POST(request: NextRequest) {
     virtualMac: device.virtualMac,
     pairingCode,
     pairingExpiresAt: device.pairingExpiresAt,
-    panelUrl: process.env.NEXT_PUBLIC_APP_PANEL_URL || "http://localhost:3000",
+    panelUrl: panelUrlFromRequest(request),
     paired: Boolean(device.pairedAt || existing?.pairedAt),
     deviceToken: existing?.deviceTokenHash ? undefined : deviceToken
   });
+}
+
+function panelUrlFromRequest(request: NextRequest) {
+  const configured = process.env.NEXT_PUBLIC_APP_PANEL_URL?.trim().replace(/\/$/, "");
+  if (configured && !configured.includes("SEU-PROJETO")) return configured;
+  return request.nextUrl.origin;
 }

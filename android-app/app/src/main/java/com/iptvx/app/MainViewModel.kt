@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.FlowPreview
 
 data class IptvUiState(
     val loading: Boolean = false,
@@ -37,6 +38,7 @@ data class IptvUiState(
     val performanceMode: Boolean = true
 )
 
+@OptIn(FlowPreview::class)
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val preferences = AppPreferences(application)
     private val repository = IptvRepository(
@@ -134,6 +136,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val playlists = (_uiState.value.playlists + playlist).distinctBy { it.id }
                     _uiState.update {
                         it.copy(loading = false, playlists = playlists, selectedPlaylist = playlist, message = "Lista manual adicionada.")
+                    }
+                    selectPlaylist(playlist)
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(loading = false, error = friendlyError(error)) }
+                }
+        }
+    }
+
+    fun addManualXtream(name: String, serverUrl: String, username: String, password: String, epgUrl: String? = null) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(loading = true, error = null, message = "Entrando...") }
+            repository.addManualXtream(name, serverUrl, username, password, epgUrl)
+                .onSuccess { playlist ->
+                    val playlists = (_uiState.value.playlists + playlist).distinctBy { it.id }
+                    _uiState.update {
+                        it.copy(
+                            loading = false,
+                            playlists = playlists,
+                            selectedPlaylist = playlist,
+                            message = "Login concluido. Canais carregados."
+                        )
                     }
                     selectPlaylist(playlist)
                 }

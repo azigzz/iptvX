@@ -67,6 +67,10 @@ fun IptvApp(state: IptvUiState, viewModel: MainViewModel) {
                 state = state,
                 onSync = { viewModel.syncNow() },
                 onRefreshCode = { viewModel.registerDevice() },
+                onXtreamLogin = { serverUrl, username, password ->
+                    viewModel.addManualXtream("Xtream", serverUrl, username, password)
+                    screen = Screen.HOME
+                },
                 onManual = { screen = Screen.MANUAL },
                 onSettings = { screen = Screen.SETTINGS }
             )

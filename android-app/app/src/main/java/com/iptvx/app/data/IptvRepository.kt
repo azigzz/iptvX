@@ -82,6 +82,30 @@ class IptvRepository(
         }
     }
 
+    suspend fun addManualXtream(
+        name: String,
+        serverUrl: String,
+        username: String,
+        password: String,
+        epgUrl: String?
+    ): Result<PlaylistConfig> {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val playlist = PlaylistConfig(
+                    id = "local-xtream-${stableId("$serverUrl|$username")}",
+                    name = name.ifBlank { username },
+                    type = PlaylistType.XTREAM,
+                    serverUrl = serverUrl.trim(),
+                    username = username.trim(),
+                    password = password,
+                    epgUrl = epgUrl
+                )
+                cachePlaylistContent(playlist)
+                playlist
+            }
+        }
+    }
+
     suspend fun cachePlaylistContent(playlist: PlaylistConfig) {
         when (playlist.type) {
             PlaylistType.M3U -> cacheM3u(playlist)

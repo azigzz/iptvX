@@ -39,7 +39,7 @@ class AppPreferences(private val context: Context) {
             deviceToken = prefs[deviceTokenKey],
             virtualMac = prefs[virtualMacKey],
             pairingCode = prefs[pairingCodeKey],
-            panelUrl = prefs[panelUrlKey] ?: BuildConfig.DEFAULT_PANEL_URL,
+            panelUrl = normalizedPanelUrl(prefs[panelUrlKey]),
             paired = prefs[pairedKey] ?: false,
             performanceMode = prefs[performanceModeKey] ?: true
         )
@@ -79,5 +79,14 @@ class AppPreferences(private val context: Context) {
 
     suspend fun savePerformanceMode(enabled: Boolean) {
         context.iptvDataStore.edit { it[performanceModeKey] = enabled }
+    }
+
+    private fun normalizedPanelUrl(savedUrl: String?): String {
+        val url = savedUrl?.trim()?.trimEnd('/').orEmpty()
+        return if (url.isBlank() || url == "http://10.0.2.2:3000" || url == "http://localhost:3000") {
+            BuildConfig.DEFAULT_PANEL_URL
+        } else {
+            url
+        }
     }
 }

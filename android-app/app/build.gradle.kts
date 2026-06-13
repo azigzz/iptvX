@@ -19,7 +19,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        buildConfigField("String", "DEFAULT_PANEL_URL", "\"http://10.0.2.2:3000\"")
+        buildConfigField("String", "DEFAULT_PANEL_URL", "\"https://iptvxx.vercel.app\"")
     }
 
     buildTypes {
