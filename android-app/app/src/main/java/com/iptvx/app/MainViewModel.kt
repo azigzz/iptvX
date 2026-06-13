@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.iptvx.app.data.IptvRepository
+import com.iptvx.app.data.shortNumericDeviceId
 import com.iptvx.app.data.local.AppPreferences
 import com.iptvx.app.data.local.ChannelEntity
 import com.iptvx.app.data.local.IptvDatabase
@@ -25,6 +26,7 @@ data class IptvUiState(
     val message: String? = null,
     val error: String? = null,
     val deviceId: String = "",
+    val displayDeviceId: String = "",
     val virtualMac: String? = null,
     val pairingCode: String? = null,
     val panelUrl: String = BuildConfig.DEFAULT_PANEL_URL,
@@ -57,6 +59,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.update {
                     it.copy(
                         deviceId = prefs.deviceId,
+                        displayDeviceId = shortNumericDeviceId(prefs.deviceId),
                         virtualMac = prefs.virtualMac,
                         pairingCode = prefs.pairingCode,
                         panelUrl = prefs.panelUrl,

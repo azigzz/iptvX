@@ -41,7 +41,14 @@ export function PairDeviceForm() {
       </label>
       <label className="grid gap-2 text-sm">
         ID
-        <input name="deviceId" placeholder="ID exibido no app" required />
+        <input
+          name="deviceId"
+          placeholder="12345"
+          inputMode="numeric"
+          pattern="[0-9]{1,5}"
+          maxLength={5}
+          required
+        />
       </label>
       {message ? <p className="rounded-md border border-signal/50 bg-signal/10 p-3 text-sm text-signal">{message}</p> : null}
       {error ? <p className="rounded-md border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-200">{error}</p> : null}

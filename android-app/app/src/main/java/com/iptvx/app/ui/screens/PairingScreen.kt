@@ -1,27 +1,22 @@
 package com.iptvx.app.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -34,13 +29,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.iptvx.app.IptvUiState
+import com.iptvx.app.R
+
+private val ThemeYellow = Color(0xFFF4D21B)
+private val DeepBlack = Color(0xFF050608)
 
 @Composable
 fun PairingScreen(
@@ -56,61 +58,69 @@ fun PairingScreen(
     var password by remember { mutableStateOf("") }
     val canLogin = serverUrl.isNotBlank() && username.isNotBlank() && password.isNotBlank() && !state.loading
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.radialGradient(
-                    colors = listOf(Color(0xFF11151C), Color(0xFF050608)),
-                    radius = 900f
+                    colors = listOf(Color(0xFF16181E), Color(0xFF08090C), DeepBlack),
+                    radius = 980f
                 )
             )
     ) {
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-                .height(8.dp)
-                .background(Color(0xFFF2D21C))
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 18.dp, end = 24.dp)
-                .width(128.dp)
-                .height(44.dp)
-                .background(Color(0x55F2D21C), RoundedCornerShape(4.dp))
-        )
+        val portrait = maxHeight > maxWidth
+        val shortScreen = maxHeight < 470.dp
+        val sidePadding = if (maxWidth < 520.dp) 18.dp else 32.dp
+        val formWidth = when {
+            maxWidth < 420.dp -> maxWidth - sidePadding * 2
+            portrait -> minDp(maxWidth * 0.78f, 420.dp)
+            else -> minDp(maxWidth * 0.34f, 430.dp)
+        }
+        val logoSize = when {
+            shortScreen -> 48.dp
+            maxWidth < 520.dp -> 58.dp
+            else -> 72.dp
+        }
+        val titleSize = if (shortScreen) 28.sp else 36.sp
+        val fieldHeight = if (shortScreen) 44.dp else 50.dp
+        val gap = if (shortScreen) 7.dp else 10.dp
+        val bottomPadding = if (maxHeight < 430.dp) 10.dp else 20.dp
+
+        DecorativeEdge()
 
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
-                .width(390.dp)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .width(formWidth),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            LogoMark()
-            Spacer(Modifier.height(12.dp))
+            Image(
+                painter = painterResource(R.drawable.brand_mark),
+                contentDescription = null,
+                modifier = Modifier.size(logoSize)
+            )
+            Spacer(Modifier.height(if (shortScreen) 6.dp else 10.dp))
             Text(
                 "IPTVX",
-                color = Color(0xFFF2D21C),
-                fontSize = 34.sp,
+                color = ThemeYellow,
+                fontSize = titleSize,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.sp
             )
-            Spacer(Modifier.height(24.dp))
-            LoginField(value = serverUrl, onValueChange = { serverUrl = it }, label = "Code")
-            Spacer(Modifier.height(10.dp))
-            LoginField(value = username, onValueChange = { username = it }, label = "Username", highlight = true)
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(if (shortScreen) 14.dp else 22.dp))
+            LoginField(value = serverUrl, onValueChange = { serverUrl = it }, label = "Code", height = fieldHeight)
+            Spacer(Modifier.height(gap))
+            LoginField(value = username, onValueChange = { username = it }, label = "Username", height = fieldHeight, highlight = true)
+            Spacer(Modifier.height(gap))
             LoginField(
                 value = password,
                 onValueChange = { password = it },
                 label = "Password",
+                height = fieldHeight,
                 isPassword = true
             )
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(if (shortScreen) 12.dp else 18.dp))
             Button(
                 onClick = { onXtreamLogin(serverUrl, username, password) },
                 enabled = canLogin,
@@ -118,13 +128,13 @@ fun PairingScreen(
                     containerColor = Color.Transparent,
                     contentColor = Color.White,
                     disabledContainerColor = Color.Transparent,
-                    disabledContentColor = Color(0xFF808080)
+                    disabledContentColor = Color(0xFF7D7D7D)
                 ),
-                border = BorderStroke(1.dp, Color(0xFFE6E9F2)),
-                shape = RoundedCornerShape(18.dp),
+                border = BorderStroke(1.dp, Color(0xFFE9E9F2)),
+                shape = RoundedCornerShape(20.dp),
                 modifier = Modifier
-                    .width(220.dp)
-                    .height(42.dp)
+                    .width(minDp(formWidth * 0.64f, 240.dp))
+                    .height(if (shortScreen) 38.dp else 42.dp)
             ) {
                 Text(if (state.loading) "Loading" else "Login", fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
@@ -132,31 +142,35 @@ fun PairingScreen(
 
         CornerIdentity(
             mac = state.virtualMac ?: "...",
-            id = state.deviceId.ifBlank { "..." },
+            id = state.displayDeviceId.ifBlank { "..." },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 24.dp, bottom = 22.dp)
+                .padding(end = sidePadding, bottom = bottomPadding),
+            maxWidth = minDp(maxWidth * 0.46f, 360.dp)
         )
     }
 }
 
 @Composable
-private fun LogoMark() {
+private fun DecorativeEdge() {
     Box(
         modifier = Modifier
-            .size(54.dp)
-            .border(0.dp, Color.Transparent, CircleShape),
-        contentAlignment = Alignment.Center
+            .fillMaxWidth()
+            .height(7.dp)
+            .background(ThemeYellow)
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp)
     ) {
-        Card(
-            shape = CircleShape,
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF2D21C)),
-            modifier = Modifier.size(46.dp)
-        ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                Text("X", color = Color(0xFF101010), fontWeight = FontWeight.Black, fontSize = 25.sp)
-            }
-        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .width(90.dp)
+                .height(3.dp)
+                .background(ThemeYellow)
+        )
     }
 }
 
@@ -165,39 +179,40 @@ private fun LoginField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    height: Dp,
     highlight: Boolean = false,
     isPassword: Boolean = false
 ) {
-    val container = if (highlight) Color(0xFFF2E733) else Color(0xFFEFF2FF)
+    val container = if (highlight) ThemeYellow else Color(0xFFF1F4FF)
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
         label = { Text(label, fontSize = 11.sp) },
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = container,
             unfocusedContainerColor = container,
             disabledContainerColor = container,
-            focusedTextColor = Color(0xFF101010),
-            unfocusedTextColor = Color(0xFF101010),
-            focusedLabelColor = Color(0xFF505050),
-            unfocusedLabelColor = Color(0xFF505050),
-            focusedBorderColor = Color(0xFFF2D21C),
+            focusedTextColor = Color(0xFF111111),
+            unfocusedTextColor = Color(0xFF111111),
+            focusedLabelColor = Color(0xFF555555),
+            unfocusedLabelColor = Color(0xFF555555),
+            focusedBorderColor = ThemeYellow,
             unfocusedBorderColor = Color.Transparent,
-            cursorColor = Color(0xFF101010)
+            cursorColor = Color(0xFF111111)
         ),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(22.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(height)
     )
 }
 
 @Composable
-private fun CornerIdentity(mac: String, id: String, modifier: Modifier = Modifier) {
+private fun CornerIdentity(mac: String, id: String, modifier: Modifier = Modifier, maxWidth: Dp) {
     Column(
-        modifier = modifier.width(330.dp),
+        modifier = modifier.width(maxWidth),
         horizontalAlignment = Alignment.End
     ) {
         Text(
@@ -218,3 +233,5 @@ private fun CornerIdentity(mac: String, id: String, modifier: Modifier = Modifie
         )
     }
 }
+
+private fun minDp(first: Dp, second: Dp): Dp = if (first < second) first else second

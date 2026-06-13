@@ -30,7 +30,7 @@ export const deviceAuthSchema = z.object({
 
 export const pairSchema = z.object({
   virtualMac: z.string().trim().min(8).max(32),
-  deviceId: z.string().trim().min(8).max(128)
+  deviceId: z.string().trim().regex(/^\d{1,5}$/, "ID deve ter ate 5 digitos numericos")
 });
 
 const playlistPayloadBaseSchema = z.object({

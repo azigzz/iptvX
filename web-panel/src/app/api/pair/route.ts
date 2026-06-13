@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { requestIp } from "@/lib/request-ip";
 import { pairSchema } from "@/lib/validators";
+import { shortNumericDeviceId } from "@/lib/device-display-id";
 
 export async function POST(request: NextRequest) {
   const unauthorized = requireAdminRequest(request);
@@ -19,15 +20,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const device = await prisma.device.findFirst({
+  const device = await prisma.device.findUnique({
     where: {
-      virtualMac: parsed.data.virtualMac.trim().toUpperCase(),
-      deviceId: parsed.data.deviceId.trim()
+      virtualMac: parsed.data.virtualMac.trim().toUpperCase()
     },
-    select: { id: true, virtualMac: true }
+    select: { id: true, deviceId: true, virtualMac: true }
   });
 
-  if (!device) {
+  if (!device || shortNumericDeviceId(device.deviceId) !== parsed.data.deviceId.trim()) {
     return NextResponse.json({ error: "MAC ou ID invalido" }, { status: 404 });
   }
 
