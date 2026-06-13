@@ -2,6 +2,7 @@ package com.iptvx.app.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +23,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,168 +54,167 @@ fun PairingScreen(
     var serverUrl by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val canLogin = serverUrl.startsWith("http") && username.isNotBlank() && password.isNotBlank() && !state.loading
+    val canLogin = serverUrl.isNotBlank() && username.isNotBlank() && password.isNotBlank() && !state.loading
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.horizontalGradient(
-                    listOf(Color(0xFF06111F), Color(0xFF0A2745), Color(0xFF07101A))
+                Brush.radialGradient(
+                    colors = listOf(Color(0xFF11151C), Color(0xFF050608)),
+                    radius = 900f
                 )
             )
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(34.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .height(8.dp)
+                .background(Color(0xFFF2D21C))
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 18.dp, end = 24.dp)
+                .width(128.dp)
+                .height(44.dp)
+                .background(Color(0x55F2D21C), RoundedCornerShape(4.dp))
+        )
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .width(390.dp)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .width(470.dp)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.width(82.dp).height(82.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text("X", color = MaterialTheme.colorScheme.onPrimary, fontSize = 38.sp, fontWeight = FontWeight.Black)
-                    }
-                }
-                Spacer(Modifier.height(18.dp))
-                Text("IPTVX PLAYER", fontSize = 16.sp, color = Color(0xFF9FD8FF), fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(14.dp))
-
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xDD08131F)),
-                    border = BorderStroke(1.dp, Color(0xFF2C6A94)),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Entrar com Xtream", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                        OutlinedTextField(
-                            value = serverUrl,
-                            onValueChange = { serverUrl = it.trim() },
-                            label = { Text("Servidor / Portal URL") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        OutlinedTextField(
-                            value = username,
-                            onValueChange = { username = it },
-                            label = { Text("Usuario") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        OutlinedTextField(
-                            value = password,
-                            onValueChange = { password = it },
-                            label = { Text("Senha") },
-                            singleLine = true,
-                            visualTransformation = PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Button(
-                            onClick = { onXtreamLogin(serverUrl, username, password) },
-                            enabled = canLogin,
-                            shape = RoundedCornerShape(4.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF0D7FCC),
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(58.dp)
-                        ) {
-                            Text(if (state.loading) "ENTRANDO..." else "ENTRAR", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-            }
-
-            Column(
-                modifier = Modifier.width(390.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                PairingCard(state = state, onSync = onSync, onRefreshCode = onRefreshCode)
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    SecondaryButton("M3U manual", enabled = !state.loading, onClick = onManual)
-                    SecondaryButton("Ajustes", enabled = !state.loading, onClick = onSettings)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PairingCard(
-    state: IptvUiState,
-    onSync: () -> Unit,
-    onRefreshCode: () -> Unit
-) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xE6101821)),
-        border = BorderStroke(1.dp, Color(0xFF27D6A5)),
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Parear pelo site", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            LogoMark()
+            Spacer(Modifier.height(12.dp))
             Text(
-                "Digite estes dados no painel para adicionar listas sem usar o controle.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 14.sp
+                "IPTVX",
+                color = Color(0xFFF2D21C),
+                fontSize = 34.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.sp
             )
-
-            InfoLine("Painel", state.panelUrl)
-            InfoLine("MAC/ID", state.virtualMac ?: "registrando...")
-
-            Column {
-                Text("Codigo", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
-                Text(
-                    state.pairingCode ?: "------",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 38.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 4.sp
-                )
+            Spacer(Modifier.height(24.dp))
+            LoginField(value = serverUrl, onValueChange = { serverUrl = it }, label = "Code")
+            Spacer(Modifier.height(10.dp))
+            LoginField(value = username, onValueChange = { username = it }, label = "Username", highlight = true)
+            Spacer(Modifier.height(10.dp))
+            LoginField(
+                value = password,
+                onValueChange = { password = it },
+                label = "Password",
+                isPassword = true
+            )
+            Spacer(Modifier.height(18.dp))
+            Button(
+                onClick = { onXtreamLogin(serverUrl, username, password) },
+                enabled = canLogin,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White,
+                    disabledContainerColor = Color.Transparent,
+                    disabledContentColor = Color(0xFF808080)
+                ),
+                border = BorderStroke(1.dp, Color(0xFFE6E9F2)),
+                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier
+                    .width(220.dp)
+                    .height(42.dp)
+            ) {
+                Text(if (state.loading) "Loading" else "Login", fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
+        }
 
-            if (!state.error.isNullOrBlank()) {
-                Text(
-                    state.error,
-                    color = MaterialTheme.colorScheme.error,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+        CornerIdentity(
+            mac = state.virtualMac ?: "...",
+            id = state.deviceId.ifBlank { "..." },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 24.dp, bottom = 22.dp)
+        )
+    }
+}
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                PrimaryButton("Sincronizar", enabled = !state.loading, onClick = onSync)
-                SecondaryButton("Novo codigo", enabled = !state.loading, onClick = onRefreshCode)
+@Composable
+private fun LogoMark() {
+    Box(
+        modifier = Modifier
+            .size(54.dp)
+            .border(0.dp, Color.Transparent, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            shape = CircleShape,
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF2D21C)),
+            modifier = Modifier.size(46.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Text("X", color = Color(0xFF101010), fontWeight = FontWeight.Black, fontSize = 25.sp)
             }
         }
     }
 }
 
 @Composable
-private fun InfoLine(label: String, value: String) {
-    Column {
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+private fun LoginField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    highlight: Boolean = false,
+    isPassword: Boolean = false
+) {
+    val container = if (highlight) Color(0xFFF2E733) else Color(0xFFEFF2FF)
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        label = { Text(label, fontSize = 11.sp) },
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = container,
+            unfocusedContainerColor = container,
+            disabledContainerColor = container,
+            focusedTextColor = Color(0xFF101010),
+            unfocusedTextColor = Color(0xFF101010),
+            focusedLabelColor = Color(0xFF505050),
+            unfocusedLabelColor = Color(0xFF505050),
+            focusedBorderColor = Color(0xFFF2D21C),
+            unfocusedBorderColor = Color.Transparent,
+            cursorColor = Color(0xFF101010)
+        ),
+        shape = RoundedCornerShape(18.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+    )
+}
+
+@Composable
+private fun CornerIdentity(mac: String, id: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.width(330.dp),
+        horizontalAlignment = Alignment.End
+    ) {
         Text(
-            value,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 2,
+            "mac: $mac",
+            color = Color(0xFFECECEC),
+            fontSize = 12.sp,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Start
+            textAlign = TextAlign.End
+        )
+        Text(
+            "id: $id",
+            color = Color(0xFFECECEC),
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.End
         )
     }
 }

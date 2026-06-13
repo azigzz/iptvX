@@ -30,7 +30,7 @@ export const deviceAuthSchema = z.object({
 
 export const pairSchema = z.object({
   virtualMac: z.string().trim().min(8).max(32),
-  pairingCode: z.string().trim().min(4).max(12)
+  deviceId: z.string().trim().min(8).max(128)
 });
 
 const playlistPayloadBaseSchema = z.object({

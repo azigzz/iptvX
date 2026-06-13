@@ -8,7 +8,7 @@ export default async function PairPage() {
     <div className="mx-auto max-w-3xl px-5 py-8">
       <h1 className="text-3xl font-semibold">Parear dispositivo</h1>
       <p className="mt-2 text-slate-300">
-        Digite o MAC/ID virtual e o código exibidos no app. O código expira em 15 minutos.
+        Digite o MAC e o ID exibidos no canto inferior do app.
       </p>
       <div className="mt-7 rounded-lg border border-line bg-panel p-5">
         <PairDeviceForm />

@@ -79,8 +79,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         viewModelScope.launch {
             while (true) {
-                delay(10 * 60 * 1000L)
-                if (_uiState.value.paired) syncNow(silent = true)
+                delay(60 * 1000L)
+                syncNow(silent = true)
             }
         }
     }
@@ -148,7 +148,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun addManualXtream(name: String, serverUrl: String, username: String, password: String, epgUrl: String? = null) {
         viewModelScope.launch {
             _uiState.update { it.copy(loading = true, error = null, message = "Entrando...") }
-            repository.addManualXtream(name, serverUrl, username, password, epgUrl)
+            repository.addManualXtream(name, normalizeServerUrl(serverUrl), username, password, epgUrl)
                 .onSuccess { playlist ->
                     val playlists = (_uiState.value.playlists + playlist).distinctBy { it.id }
                     _uiState.update {
@@ -227,5 +227,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             message.contains("timeout", true) -> "Servidor nao respondeu."
             else -> message.ifBlank { "Falha inesperada." }
         }
+    }
+
+    private fun normalizeServerUrl(value: String): String {
+        val trimmed = value.trim()
+        return if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) trimmed else "https://$trimmed"
     }
 }

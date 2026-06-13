@@ -3,7 +3,6 @@ import { requireAdminRequest } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { requestIp } from "@/lib/request-ip";
-import { pairDeviceByCode } from "@/lib/services/pairing";
 import { pairSchema } from "@/lib/validators";
 
 export async function POST(request: NextRequest) {
@@ -20,9 +19,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const result = await pairDeviceByCode(prisma, parsed.data.virtualMac, parsed.data.pairingCode);
-  if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
+  const device = await prisma.device.findFirst({
+    where: {
+      virtualMac: parsed.data.virtualMac.trim().toUpperCase(),
+      deviceId: parsed.data.deviceId.trim()
+    },
+    select: { id: true, virtualMac: true }
+  });
+
+  if (!device) {
+    return NextResponse.json({ error: "MAC ou ID invalido" }, { status: 404 });
   }
-  return NextResponse.json({ ok: true, deviceId: result.deviceId, virtualMac: result.virtualMac });
+
+  await prisma.device.update({
+    where: { id: device.id },
+    data: { pairedAt: new Date(), pairingCodeHash: null, pairingExpiresAt: null }
+  });
+  await prisma.syncLog.create({
+    data: { deviceId: device.id, status: "OK", message: "Dispositivo pareado por MAC e ID" }
+  });
+
+  return NextResponse.json({ ok: true, deviceId: device.id, virtualMac: device.virtualMac });
 }

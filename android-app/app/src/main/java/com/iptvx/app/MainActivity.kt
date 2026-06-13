@@ -24,8 +24,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (viewModel.uiState.value.paired) {
-            viewModel.syncNow(silent = true)
-        }
+        viewModel.syncNow(silent = true)
     }
 }

@@ -52,6 +52,10 @@ fun IptvApp(state: IptvUiState, viewModel: MainViewModel) {
         if (state.paired && screen == Screen.PAIRING) screen = Screen.HOME
     }
 
+    LaunchedEffect(state.playlists.size) {
+        if (screen == Screen.PAIRING && state.playlists.isNotEmpty()) screen = Screen.HOME
+    }
+
     BackHandler(enabled = screen != Screen.HOME && screen != Screen.PAIRING) {
         screen = Screen.HOME
     }
@@ -69,7 +73,6 @@ fun IptvApp(state: IptvUiState, viewModel: MainViewModel) {
                 onRefreshCode = { viewModel.registerDevice() },
                 onXtreamLogin = { serverUrl, username, password ->
                     viewModel.addManualXtream("Xtream", serverUrl, username, password)
-                    screen = Screen.HOME
                 },
                 onManual = { screen = Screen.MANUAL },
                 onSettings = { screen = Screen.SETTINGS }
