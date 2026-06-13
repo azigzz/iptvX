@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: #0b0f14;
+  color: #eef6f2;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+input,
+select {
+  background: #0f1722;
+  border: 1px solid #2b394a;
+  border-radius: 8px;
+  color: #f8fafc;
+  padding: 0.72rem 0.78rem;
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #27d6a5;
+  outline-offset: 3px;
+}

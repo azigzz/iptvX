@@ -1,0 +1,3 @@
+-keep class kotlinx.serialization.** { *; }
+-keep class com.iptvx.app.data.model.** { *; }
+-dontwarn org.slf4j.**

@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlaylistType {
+  XTREAM
+  M3U
+}
+
+enum ContentType {
+  LIVE
+  MOVIE
+  SERIES
+}
+
+enum ThemeMode {
+  DARK
+  SYSTEM
+}
+
+enum BufferMode {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum SyncStatus {
+  OK
+  ERROR
+  INFO
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Device {
+  id              String          @id @default(cuid())
+  deviceId        String          @unique
+  virtualMac      String          @unique
+  pairingCodeHash String?
+  pairingExpiresAt DateTime?
+  pairedAt        DateTime?
+  deviceTokenHash String?
+  lastSeenAt      DateTime?
+  lastSyncAt      DateTime?
+  model           String?
+  manufacturer    String?
+  androidVersion  String?
+  appVersion      String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  playlists       Playlist[]
+  settings        DeviceSetting?
+  favorites       Favorite[]
+  history         WatchHistory[]
+  syncLogs        SyncLog[]
+
+  @@index([virtualMac])
+  @@index([lastSeenAt])
+}
+
+model Playlist {
+  id                String       @id @default(cuid())
+  deviceId          String
+  device            Device       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  name              String
+  type              PlaylistType
+  serverUrl         String?
+  usernameEncrypted String?
+  passwordEncrypted String?
+  m3uUrlEncrypted   String?
+  epgUrlEncrypted   String?
+  enabled           Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  favorites         Favorite[]
+  history           WatchHistory[]
+
+  @@index([deviceId])
+  @@index([enabled])
+}
+
+model DeviceSetting {
+  deviceId        String     @id
+  device          Device     @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  parentalPinHash String?
+  theme           ThemeMode  @default(DARK)
+  bufferMode      BufferMode @default(MEDIUM)
+  performanceMode Boolean    @default(true)
+}
+
+model Favorite {
+  id          String      @id @default(cuid())
+  deviceId    String
+  device      Device      @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  playlistId  String
+  playlist    Playlist    @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  contentType ContentType
+  contentId   String
+  name        String
+  createdAt   DateTime    @default(now())
+
+  @@unique([deviceId, playlistId, contentType, contentId])
+  @@index([deviceId])
+}
+
+model WatchHistory {
+  id          String      @id @default(cuid())
+  deviceId    String
+  device      Device      @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  playlistId  String
+  playlist    Playlist    @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  contentType ContentType
+  contentId   String
+  positionMs  Int         @default(0)
+  durationMs  Int         @default(0)
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([deviceId, playlistId, contentType, contentId])
+  @@index([deviceId, updatedAt])
+}
+
+model SyncLog {
+  id        String     @id @default(cuid())
+  deviceId  String
+  device    Device     @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  status    SyncStatus
+  message   String
+  createdAt DateTime   @default(now())
+
+  @@index([deviceId, createdAt])
+}
