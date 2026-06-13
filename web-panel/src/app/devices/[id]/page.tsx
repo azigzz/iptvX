@@ -5,6 +5,8 @@ import { PlaylistForm } from "@/components/playlist-form";
 import { PlaylistRowActions } from "@/components/playlist-row-actions";
 import { formatDateTime, onlineState } from "@/components/ui-format";
 
+export const dynamic = "force-dynamic";
+
 export default async function DeviceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdminPage();
   const { id } = await params;

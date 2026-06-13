@@ -3,6 +3,8 @@ import { requireAdminPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/components/ui-format";
 
+export const dynamic = "force-dynamic";
+
 export default async function PlaylistsPage() {
   await requireAdminPage();
   const playlists = await prisma.playlist.findMany({

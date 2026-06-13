@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { StatCard } from "@/components/stat-card";
 import { formatDateTime, onlineState } from "@/components/ui-format";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   await requireAdminPage();
   const [devices, playlists, logs] = await Promise.all([

@@ -3,6 +3,8 @@ import { requireAdminPage } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, onlineState } from "@/components/ui-format";
 
+export const dynamic = "force-dynamic";
+
 export default async function DevicesPage() {
   await requireAdminPage();
   const devices = await prisma.device.findMany({
