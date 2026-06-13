@@ -105,6 +105,23 @@ data class XtreamStream(
     val directUrl: String?
 )
 
+data class XtreamProgramme(
+    val title: String,
+    val description: String?,
+    val startUtc: Long,
+    val endUtc: Long
+)
+
+data class SeriesEpisode(
+    val id: String,
+    val title: String,
+    val season: Int,
+    val episode: Int,
+    val url: String,
+    val imageUrl: String? = null,
+    val plot: String? = null
+)
+
 data class EpgProgramme(
     val channelId: String,
     val channelName: String?,
@@ -121,5 +138,13 @@ data class PlaybackItem(
     val playlistId: String,
     val contentType: ContentType,
     val logoUrl: String? = null,
-    val category: String? = null
+    val category: String? = null,
+    val tvgId: String? = null
+)
+
+data class NowPlayingInfo(
+    val title: String,
+    val description: String? = null,
+    val startUtc: Long? = null,
+    val endUtc: Long? = null
 )

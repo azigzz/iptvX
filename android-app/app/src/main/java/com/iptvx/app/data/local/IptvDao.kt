@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -11,20 +12,48 @@ interface IptvDao {
     @Query("SELECT * FROM channels WHERE playlistId = :playlistId ORDER BY category, name LIMIT :limit OFFSET :offset")
     fun channelsForPlaylist(playlistId: String, limit: Int, offset: Int): Flow<List<ChannelEntity>>
 
-    @Query("SELECT DISTINCT category FROM channels WHERE playlistId = :playlistId ORDER BY category")
-    fun categoriesForPlaylist(playlistId: String): Flow<List<String?>>
+    @Query(
+        """
+        SELECT DISTINCT category FROM channels
+        WHERE playlistId = :playlistId
+        AND ((:sourceType = 'LIVE' AND sourceType IN ('LIVE', 'XTREAM', 'M3U')) OR sourceType = :sourceType)
+        ORDER BY category
+        """
+    )
+    fun categoriesForPlaylist(playlistId: String, sourceType: String): Flow<List<String?>>
 
-    @Query("SELECT * FROM channels WHERE playlistId = :playlistId AND (:category IS NULL OR category = :category) ORDER BY name LIMIT :limit OFFSET :offset")
-    fun channelsByCategory(playlistId: String, category: String?, limit: Int, offset: Int): Flow<List<ChannelEntity>>
+    @Query(
+        """
+        SELECT * FROM channels
+        WHERE playlistId = :playlistId
+        AND ((:sourceType = 'LIVE' AND sourceType IN ('LIVE', 'XTREAM', 'M3U')) OR sourceType = :sourceType)
+        AND (:category IS NULL OR category = :category)
+        ORDER BY name LIMIT :limit OFFSET :offset
+        """
+    )
+    fun channelsByCategory(playlistId: String, category: String?, sourceType: String, limit: Int, offset: Int): Flow<List<ChannelEntity>>
 
-    @Query("SELECT * FROM channels WHERE searchableName LIKE '%' || :query || '%' ORDER BY name LIMIT 80")
-    fun searchChannels(query: String): Flow<List<ChannelEntity>>
+    @Query(
+        """
+        SELECT * FROM channels
+        WHERE searchableName LIKE '%' || :query || '%'
+        AND ((:sourceType = 'LIVE' AND sourceType IN ('LIVE', 'XTREAM', 'M3U')) OR sourceType = :sourceType)
+        ORDER BY name LIMIT 80
+        """
+    )
+    fun searchChannels(query: String, sourceType: String): Flow<List<ChannelEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertChannels(channels: List<ChannelEntity>)
 
     @Query("DELETE FROM channels WHERE playlistId = :playlistId")
     suspend fun clearPlaylistChannels(playlistId: String)
+
+    @Transaction
+    suspend fun replacePlaylistChannels(playlistId: String, channels: List<ChannelEntity>) {
+        clearPlaylistChannels(playlistId)
+        channels.chunked(500).forEach { upsertChannels(it) }
+    }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertFavorite(favorite: FavoriteEntity)

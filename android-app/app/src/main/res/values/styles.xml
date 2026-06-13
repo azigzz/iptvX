@@ -2,7 +2,8 @@
     <style name="Theme.IptvX" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
-        <item name="android:windowBackground">#080D12</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@drawable/launch_background</item>
         <item name="android:fontFamily">sans</item>
     </style>
 </resources>

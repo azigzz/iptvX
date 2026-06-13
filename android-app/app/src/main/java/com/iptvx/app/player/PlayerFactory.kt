@@ -6,9 +6,9 @@ import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 
 enum class BufferMode(val minMs: Int, val maxMs: Int, val playbackMs: Int, val rebufferMs: Int) {
-    LOW(4_000, 12_000, 700, 1_200),
-    MEDIUM(8_000, 28_000, 1_000, 1_800),
-    HIGH(15_000, 50_000, 1_500, 2_500)
+    LOW(1_000, 3_000, 300, 600),
+    MEDIUM(1_500, 5_000, 500, 900),
+    HIGH(2_500, 5_000, 700, 1_100)
 }
 
 object PlayerFactory {

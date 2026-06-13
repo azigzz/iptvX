@@ -24,10 +24,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -43,11 +46,18 @@ private val HomeYellow = Color(0xFFF4D21B)
 @Composable
 fun HomeScreen(
     state: IptvUiState,
+    onRefresh: () -> Unit,
     onLive: () -> Unit,
     onVod: () -> Unit,
     onSeries: () -> Unit,
     onSettings: () -> Unit
 ) {
+    val tvFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        tvFocusRequester.requestFocus()
+    }
+
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -86,6 +96,7 @@ fun HomeScreen(
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    IconPillButton(icon = R.drawable.ic_sync, text = if (state.loading) "Sync..." else "Atualizar", enabled = !state.loading, onClick = onRefresh)
                     IconPillButton(icon = R.drawable.ic_settings, text = "Ajustes", onClick = onSettings)
                 }
             }
@@ -94,15 +105,15 @@ fun HomeScreen(
 
             if (compact) {
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth()) {
-                    MainFeatureCard("TV", "Canais ao vivo", R.drawable.ic_live_tv, Modifier.width(cardWidth).height(cardHeight), onLive)
-                    MainFeatureCard("Filmes", "Biblioteca VOD", R.drawable.ic_movies, Modifier.width(cardWidth).height(cardHeight), onVod)
-                    MainFeatureCard("Series", "Temporadas e episodios", R.drawable.ic_series, Modifier.width(cardWidth).height(cardHeight), onSeries)
+                    MainFeatureCard("TV", "Canais ao vivo", R.drawable.ic_live_tv, tvGradient(), Modifier.width(cardWidth).height(cardHeight).focusRequester(tvFocusRequester), onLive)
+                    MainFeatureCard("Filmes", "Biblioteca VOD", R.drawable.ic_movies, movieGradient(), Modifier.width(cardWidth).height(cardHeight), onVod)
+                    MainFeatureCard("Series", "Temporadas e episodios", R.drawable.ic_series, seriesGradient(), Modifier.width(cardWidth).height(cardHeight), onSeries)
                 }
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.fillMaxWidth()) {
-                    MainFeatureCard("TV", "Canais ao vivo", R.drawable.ic_live_tv, Modifier.width(cardWidth).height(cardHeight), onLive)
-                    MainFeatureCard("Filmes", "Biblioteca VOD", R.drawable.ic_movies, Modifier.width(cardWidth).height(cardHeight), onVod)
-                    MainFeatureCard("Series", "Temporadas e episodios", R.drawable.ic_series, Modifier.width(cardWidth).height(cardHeight), onSeries)
+                    MainFeatureCard("TV", "Canais ao vivo", R.drawable.ic_live_tv, tvGradient(), Modifier.width(cardWidth).height(cardHeight).focusRequester(tvFocusRequester), onLive)
+                    MainFeatureCard("Filmes", "Biblioteca VOD", R.drawable.ic_movies, movieGradient(), Modifier.width(cardWidth).height(cardHeight), onVod)
+                    MainFeatureCard("Series", "Temporadas e episodios", R.drawable.ic_series, seriesGradient(), Modifier.width(cardWidth).height(cardHeight), onSeries)
                 }
             }
         }
@@ -114,6 +125,7 @@ private fun MainFeatureCard(
     title: String,
     subtitle: String,
     icon: Int,
+    colors: List<Color>,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -123,11 +135,16 @@ private fun MainFeatureCard(
         onClick = onClick,
         interactionSource = interaction,
         shape = RoundedCornerShape(10.dp),
-        border = BorderStroke(if (focused) 3.dp else 1.dp, if (focused) HomeYellow else Color(0xFF2F3440)),
-        colors = CardDefaults.cardColors(containerColor = if (focused) Color(0xFF171A20) else Color(0xFF0F1218)),
+        border = BorderStroke(if (focused) 3.dp else 1.dp, if (focused) Color.White else Color(0xFF2F3440)),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = modifier.focusable(interactionSource = interaction)
     ) {
-        Box(Modifier.fillMaxSize().padding(22.dp)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Brush.linearGradient(colors))
+                .padding(22.dp)
+        ) {
             Image(
                 painter = painterResource(icon),
                 contentDescription = null,
@@ -137,11 +154,15 @@ private fun MainFeatureCard(
             )
             Column(Modifier.align(Alignment.BottomStart)) {
                 Text(title, fontSize = 31.sp, fontWeight = FontWeight.Black, color = Color.White)
-                Text(subtitle, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(subtitle, fontSize = 14.sp, color = Color(0xFFE8EDF7))
             }
         }
     }
 }
+
+private fun tvGradient() = listOf(Color(0xFF10E0A0), Color(0xFF198BEE), Color(0xFF5D2BFF))
+private fun movieGradient() = listOf(Color(0xFFF21A62), Color(0xFFFF7A2F), Color(0xFFFFD447))
+private fun seriesGradient() = listOf(Color(0xFF9B2BFF), Color(0xFF4F7DFF), Color(0xFF45D4FF))
 
 @Composable
 private fun IconPillButton(icon: Int, text: String, enabled: Boolean = true, onClick: () -> Unit) {
