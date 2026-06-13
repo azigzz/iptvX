@@ -61,11 +61,6 @@ fun HomeScreen(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFF101318), Color(0xFF08090C), Color(0xFF050608))
-                )
-            )
             .padding(horizontal = 30.dp, vertical = 24.dp)
     ) {
         val compact = maxWidth < 560.dp

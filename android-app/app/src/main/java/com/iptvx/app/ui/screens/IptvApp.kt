@@ -1,7 +1,6 @@
 package com.iptvx.app.ui.screens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -64,10 +63,9 @@ fun IptvApp(state: IptvUiState, viewModel: MainViewModel) {
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF080D12))
+        modifier = Modifier.fillMaxSize()
     ) {
+        AppBackdrop()
         when (screen) {
             Screen.BOOT -> BootScreen(state = state)
             Screen.PAIRING -> PairingScreen(
