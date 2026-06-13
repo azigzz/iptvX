@@ -67,7 +67,7 @@ fun SettingsScreen(
     ).joinToString("  |  ")
 
     val actions = listOf(
-        SettingsAction("Adicionar lista", "M3U/M3U8 manual", R.drawable.ic_playlist, onManual),
+        SettingsAction("Listas", "M3U/M3U8 manual", R.drawable.ic_playlist, onManual),
         SettingsAction("Pareamento", "Login pelo site", R.drawable.ic_device, onPairing),
         SettingsAction("Sincronizar", "Buscar listas do painel", R.drawable.ic_sync, onSync),
         SettingsAction("EPG", "Guia de programacao", R.drawable.ic_epg, onEpg),
@@ -203,7 +203,7 @@ private fun PanelSettings(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f)) {
-                    Text("Modo desempenho", fontWeight = FontWeight.SemiBold)
+                    Text("Modo desempenho", color = Color.White, fontWeight = FontWeight.SemiBold)
                     Text("Interface mais leve para TV Box", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                 }
                 Switch(checked = performanceMode, onCheckedChange = onPerformanceMode)

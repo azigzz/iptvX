@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -27,10 +29,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -57,6 +68,12 @@ fun PairingScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val canLogin = serverUrl.isNotBlank() && username.isNotBlank() && password.isNotBlank() && !state.loading
+    val usernameFocus = remember { FocusRequester() }
+    val passwordFocus = remember { FocusRequester() }
+    val loginFocus = remember { FocusRequester() }
+    val submitLogin = {
+        if (canLogin) onXtreamLogin(serverUrl.trim(), username.trim(), password)
+    }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -109,20 +126,54 @@ fun PairingScreen(
                 letterSpacing = 1.sp
             )
             Spacer(Modifier.height(if (shortScreen) 14.dp else 22.dp))
-            LoginField(value = serverUrl, onValueChange = { serverUrl = it }, label = "Code", height = fieldHeight)
+            LoginField(
+                value = serverUrl,
+                onValueChange = { serverUrl = it },
+                label = "Code",
+                height = fieldHeight,
+                imeAction = ImeAction.Next,
+                keyboardActions = KeyboardActions(onNext = { usernameFocus.requestFocus() })
+            )
             Spacer(Modifier.height(gap))
-            LoginField(value = username, onValueChange = { username = it }, label = "Username", height = fieldHeight, highlight = true)
+            LoginField(
+                value = username,
+                onValueChange = { username = it },
+                label = "Username",
+                height = fieldHeight,
+                highlight = true,
+                imeAction = ImeAction.Next,
+                keyboardActions = KeyboardActions(onNext = { passwordFocus.requestFocus() }),
+                modifier = Modifier.focusRequester(usernameFocus)
+            )
             Spacer(Modifier.height(gap))
             LoginField(
                 value = password,
                 onValueChange = { password = it },
                 label = "Password",
                 height = fieldHeight,
-                isPassword = true
+                isPassword = true,
+                imeAction = ImeAction.Done,
+                keyboardActions = KeyboardActions(onDone = { submitLogin() }),
+                modifier = Modifier
+                    .focusRequester(passwordFocus)
+                    .onPreviewKeyEvent { event ->
+                        if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                        when (event.key) {
+                            Key.DirectionDown -> {
+                                loginFocus.requestFocus()
+                                true
+                            }
+                            Key.Enter, Key.NumPadEnter -> {
+                                submitLogin()
+                                true
+                            }
+                            else -> false
+                        }
+                    }
             )
             Spacer(Modifier.height(if (shortScreen) 12.dp else 18.dp))
             Button(
-                onClick = { onXtreamLogin(serverUrl, username, password) },
+                onClick = submitLogin,
                 enabled = canLogin,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Transparent,
@@ -133,10 +184,30 @@ fun PairingScreen(
                 border = BorderStroke(1.dp, Color(0xFFE9E9F2)),
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier
+                    .focusRequester(loginFocus)
                     .width(minDp(formWidth * 0.64f, 240.dp))
                     .height(if (shortScreen) 38.dp else 42.dp)
             ) {
                 Text(if (state.loading) "Loading" else "Login", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            }
+            if (!state.error.isNullOrBlank()) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    state.error,
+                    color = Color(0xFFFF746E),
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            } else if (state.loading) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "Carregando lista...",
+                    color = Color(0xFFECECEC),
+                    fontSize = 12.sp,
+                    textAlign = TextAlign.Center
+                )
             }
         }
 
@@ -181,14 +252,22 @@ private fun LoginField(
     label: String,
     height: Dp,
     highlight: Boolean = false,
-    isPassword: Boolean = false
+    isPassword: Boolean = false,
+    imeAction: ImeAction = ImeAction.Next,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    modifier: Modifier = Modifier
 ) {
     val container = if (highlight) ThemeYellow else Color(0xFFF1F4FF)
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        label = { Text(label, fontSize = 11.sp) },
+        placeholder = { Text(label, color = Color(0xFF555555), fontSize = 13.sp) },
+        keyboardOptions = KeyboardOptions(
+            imeAction = imeAction,
+            keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Uri
+        ),
+        keyboardActions = keyboardActions,
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         colors = OutlinedTextFieldDefaults.colors(
             focusedContainerColor = container,
@@ -203,7 +282,7 @@ private fun LoginField(
             cursorColor = Color(0xFF111111)
         ),
         shape = RoundedCornerShape(22.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(height)
     )

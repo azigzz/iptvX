@@ -10,7 +10,8 @@
         android:banner="@drawable/banner"
         android:icon="@drawable/ic_launcher"
         android:label="iptvX"
-        android:theme="@style/Theme.IptvX">
+        android:theme="@style/Theme.IptvX"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"

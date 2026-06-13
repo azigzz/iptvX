@@ -40,7 +40,7 @@ fun ScreenHeader(title: String, subtitle: String? = null, trailing: @Composable 
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(Modifier.weight(1f)) {
-            Text(title, fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
+            Text(title, color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
             if (!subtitle.isNullOrBlank()) {
                 Text(
                     subtitle,
@@ -75,7 +75,7 @@ fun TvCardButton(
             .focusable(interactionSource = interaction)
     ) {
         Column(Modifier.padding(18.dp)) {
-            Text(title, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(title, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (!subtitle.isNullOrBlank()) {
                 Spacer(Modifier.height(8.dp))
                 Text(subtitle, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -93,7 +93,7 @@ fun PrimaryButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
     ) {
-        Text(text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(text, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -106,7 +106,7 @@ fun SecondaryButton(text: String, enabled: Boolean = true, onClick: () -> Unit) 
         border = BorderStroke(1.dp, Color(0xFF314154)),
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
     ) {
-        Text(text, fontSize = 16.sp)
+        Text(text, color = MaterialTheme.colorScheme.primary, fontSize = 16.sp)
     }
 }
 

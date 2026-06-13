@@ -111,6 +111,7 @@ private fun CategoryRow(name: String, selected: Boolean, onClick: () -> Unit) {
         ) {
             Text(
                 name,
+                color = Color.White,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -158,6 +159,7 @@ private fun ChannelRow(channel: ChannelEntity, onClick: () -> Unit) {
             Column(Modifier.weight(1f)) {
                 Text(
                     channel.name,
+                    color = Color.White,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

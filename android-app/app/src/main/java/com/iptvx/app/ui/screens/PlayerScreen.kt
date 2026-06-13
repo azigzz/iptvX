@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -55,7 +56,7 @@ fun PlayerScreen(
     Box(
         Modifier
             .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color.Black)
+            .background(Color.Black)
             .focusable()
             .onPreviewKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
@@ -90,9 +91,9 @@ fun PlayerScreen(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(24.dp),
-            color = androidx.compose.ui.graphics.Color(0xCC101821)
+            color = Color(0xCC101821)
         ) {
-            Text(item.title, modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp))
+            Text(item.title, color = Color.White, modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp))
         }
     }
 }
