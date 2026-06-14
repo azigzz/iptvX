@@ -49,6 +49,12 @@ interface IptvDao {
     @Query("DELETE FROM channels WHERE playlistId = :playlistId")
     suspend fun clearPlaylistChannels(playlistId: String)
 
+    @Query("SELECT COUNT(*) FROM channels WHERE playlistId IN (:playlistIds)")
+    suspend fun channelCountForPlaylists(playlistIds: List<String>): Int
+
+    @Query("SELECT COUNT(*) FROM channels WHERE playlistId = :playlistId")
+    suspend fun channelCountForPlaylist(playlistId: String): Int
+
     @Transaction
     suspend fun replacePlaylistChannels(playlistId: String, channels: List<ChannelEntity>) {
         clearPlaylistChannels(playlistId)

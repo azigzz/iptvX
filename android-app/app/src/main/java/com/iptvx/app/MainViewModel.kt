@@ -61,6 +61,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val searchFlow = MutableStateFlow("")
     private var categoriesJob: Job? = null
     private var channelsJob: Job? = null
+    private var syncJob: Job? = null
+    private var startupSyncStarted = false
 
     init {
         viewModelScope.launch {
@@ -69,7 +71,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val shouldUseCachedPlaylists = current.playlists.isEmpty() && prefs.cachedPlaylists.isNotEmpty()
                 val cachedSelected = if (shouldUseCachedPlaylists) prefs.cachedPlaylists.firstOrNull() else current.selectedPlaylist
                 val readyFromCache = prefs.cachedPlaylists.isNotEmpty()
-                val readyForPairing = !prefs.paired && prefs.cachedPlaylists.isEmpty()
+                val shouldRefreshBeforeHome = readyFromCache || prefs.paired
+                val readyForPairing = !shouldRefreshBeforeHome
                 _uiState.update {
                     it.copy(
                         deviceId = prefs.deviceId,
@@ -81,12 +84,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         playlists = if (shouldUseCachedPlaylists) prefs.cachedPlaylists else it.playlists,
                         selectedPlaylist = if (shouldUseCachedPlaylists) cachedSelected else it.selectedPlaylist,
                         preferencesLoaded = true,
-                        initialLoadComplete = it.initialLoadComplete || readyFromCache || readyForPairing,
+                        initialLoadComplete = it.initialLoadComplete || readyForPairing,
                         performanceMode = prefs.performanceMode
                     )
                 }
                 if (shouldUseCachedPlaylists && cachedSelected != null) {
                     observeContent(cachedSelected, _uiState.value.contentType)
+                }
+                if (shouldRefreshBeforeHome && !startupSyncStarted) {
+                    startupSyncStarted = true
+                    syncNow(silent = false, startup = true)
                 }
             }
         }
@@ -118,49 +125,92 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun registerDevice() {
         viewModelScope.launch {
-            _uiState.update { it.copy(loading = true, error = null) }
+            if (syncJob?.isActive != true) {
+                _uiState.update { it.copy(loading = true, error = null) }
+            }
             repository.registerOrRefresh()
                 .onSuccess {
                     _uiState.update {
-                        it.copy(loading = false, message = "Dispositivo registrado. Use o codigo exibido para parear.")
+                        if (syncJob?.isActive == true && !it.initialLoadComplete) {
+                            it
+                        } else {
+                            it.copy(loading = false, message = "Dispositivo registrado. Use o codigo exibido para parear.")
+                        }
                     }
-                    syncNow(silent = true)
                 }
                 .onFailure { error ->
-                    _uiState.update { it.copy(loading = false, initialLoadComplete = true, error = friendlyError(error)) }
+                    if (syncJob?.isActive != true) {
+                        _uiState.update { it.copy(loading = false, initialLoadComplete = true, error = friendlyError(error)) }
+                    }
                 }
         }
     }
 
-    fun syncNow(silent: Boolean = false) {
-        viewModelScope.launch {
-            val startupNeedsList = !_uiState.value.initialLoadComplete && _uiState.value.playlists.isEmpty()
-            if (!silent || startupNeedsList) {
+    fun syncNow(silent: Boolean = false, startup: Boolean = false) {
+        if (syncJob?.isActive == true) return
+        syncJob = viewModelScope.launch {
+            val stateBeforeSync = _uiState.value
+            val startupNeedsList = startup || (!stateBeforeSync.initialLoadComplete && stateBeforeSync.playlists.isEmpty())
+            if (startupNeedsList) {
+                _uiState.update {
+                    it.copy(
+                        initialLoadComplete = false,
+                        loading = true,
+                        error = null,
+                        message = "Atualizando canais, filmes e series..."
+                    )
+                }
+            } else if (!silent) {
                 _uiState.update {
                     it.copy(
                         loading = true,
                         error = null,
-                        message = if (startupNeedsList) "Carregando listas..." else "Sincronizando..."
+                        message = "Sincronizando..."
                     )
                 }
             }
-            repository.syncFromPanel()
+            val panelResult = repository.syncFromPanel()
+            val result = if (panelResult.isSuccess) {
+                panelResult
+            } else {
+                repository.refreshSavedPlaylists()
+            }
+            result
                 .onSuccess { playlists ->
+                    val usedSavedPlaylists = panelResult.isFailure
                     val previous = _uiState.value.selectedPlaylist
-                    val selected = previous?.let { current -> playlists.firstOrNull { it.id == current.id } } ?: playlists.firstOrNull()
+                    val selected = repository.preferredPlayablePlaylist(playlists, previous?.id)
                     _uiState.update {
                         it.copy(
                             loading = false,
                             initialLoadComplete = true,
                             playlists = playlists,
                             selectedPlaylist = selected,
-                            message = if (playlists.isEmpty()) "Nenhuma lista ativa encontrada." else "Sync concluido."
+                            message = when {
+                                playlists.isEmpty() -> "Nenhuma lista ativa encontrada."
+                                usedSavedPlaylists -> "Lista salva atualizada."
+                                else -> "Sync concluido."
+                            }
                         )
                     }
                     selected?.let { selectPlaylist(it) }
                 }
                 .onFailure { error ->
-                    _uiState.update { it.copy(loading = false, initialLoadComplete = true, error = friendlyError(error)) }
+                    val failure = panelResult.exceptionOrNull() ?: error
+                    val currentPlaylists = _uiState.value.playlists
+                    val hasCachedContent = repository.hasCachedContent(currentPlaylists)
+                    _uiState.update {
+                        it.copy(
+                            loading = false,
+                            initialLoadComplete = true,
+                            playlists = if (hasCachedContent) it.playlists else emptyList(),
+                            selectedPlaylist = if (hasCachedContent) it.selectedPlaylist else null,
+                            categories = if (hasCachedContent) it.categories else emptyList(),
+                            channels = if (hasCachedContent) it.channels else emptyList(),
+                            error = if (startup && hasCachedContent) null else friendlyError(failure),
+                            message = if (startup && hasCachedContent) "Usando lista salva." else "Falha ao carregar lista."
+                        )
+                    }
                 }
         }
     }

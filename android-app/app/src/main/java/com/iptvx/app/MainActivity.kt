@@ -31,7 +31,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         enterTvFullscreen()
-        viewModel.syncNow(silent = true)
     }
 
     private fun enterTvFullscreen() {

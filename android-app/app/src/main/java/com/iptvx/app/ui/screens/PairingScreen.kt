@@ -19,6 +19,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -31,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -76,14 +77,7 @@ fun PairingScreen(
     }
 
     BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(Color(0xFF16181E), Color(0xFF08090C), DeepBlack),
-                    radius = 980f
-                )
-            )
+        modifier = Modifier.fillMaxSize()
     ) {
         val portrait = maxHeight > maxWidth
         val shortScreen = maxHeight < 470.dp
@@ -105,109 +99,137 @@ fun PairingScreen(
 
         DecorativeEdge()
 
-        Column(
+        Card(
             modifier = Modifier
                 .align(Alignment.Center)
                 .width(formWidth),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            colors = CardDefaults.cardColors(containerColor = Color(0xD9080C12)),
+            border = BorderStroke(1.dp, Color(0x663D5168)),
+            shape = RoundedCornerShape(18.dp)
         ) {
-            Image(
-                painter = painterResource(R.drawable.brand_mark),
-                contentDescription = null,
-                modifier = Modifier.size(logoSize)
-            )
-            Spacer(Modifier.height(if (shortScreen) 6.dp else 10.dp))
-            Text(
-                "IPTVX",
-                color = ThemeYellow,
-                fontSize = titleSize,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp
-            )
-            Spacer(Modifier.height(if (shortScreen) 14.dp else 22.dp))
-            LoginField(
-                value = serverUrl,
-                onValueChange = { serverUrl = it },
-                label = "Code",
-                height = fieldHeight,
-                imeAction = ImeAction.Next,
-                keyboardActions = KeyboardActions(onNext = { usernameFocus.requestFocus() })
-            )
-            Spacer(Modifier.height(gap))
-            LoginField(
-                value = username,
-                onValueChange = { username = it },
-                label = "Username",
-                height = fieldHeight,
-                highlight = true,
-                imeAction = ImeAction.Next,
-                keyboardActions = KeyboardActions(onNext = { passwordFocus.requestFocus() }),
-                modifier = Modifier.focusRequester(usernameFocus)
-            )
-            Spacer(Modifier.height(gap))
-            LoginField(
-                value = password,
-                onValueChange = { password = it },
-                label = "Password",
-                height = fieldHeight,
-                isPassword = true,
-                imeAction = ImeAction.Done,
-                keyboardActions = KeyboardActions(onDone = { submitLogin() }),
-                modifier = Modifier
-                    .focusRequester(passwordFocus)
-                    .onPreviewKeyEvent { event ->
-                        if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                        when (event.key) {
-                            Key.DirectionDown -> {
-                                loginFocus.requestFocus()
-                                true
-                            }
-                            Key.Enter, Key.NumPadEnter -> {
-                                submitLogin()
-                                true
-                            }
-                            else -> false
-                        }
-                    }
-            )
-            Spacer(Modifier.height(if (shortScreen) 12.dp else 18.dp))
-            Button(
-                onClick = submitLogin,
-                enabled = canLogin,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.White,
-                    disabledContainerColor = Color.Transparent,
-                    disabledContentColor = Color(0xFF7D7D7D)
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = if (shortScreen) 18.dp else 24.dp,
+                    vertical = if (shortScreen) 16.dp else 22.dp
                 ),
-                border = BorderStroke(1.dp, Color(0xFFE9E9F2)),
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier
-                    .focusRequester(loginFocus)
-                    .width(minDp(formWidth * 0.64f, 240.dp))
-                    .height(if (shortScreen) 38.dp else 42.dp)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(if (state.loading) "Loading" else "Login", fontSize = 15.sp, fontWeight = FontWeight.Bold)
-            }
-            if (!state.error.isNullOrBlank()) {
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    state.error,
-                    color = Color(0xFFFF746E),
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                Image(
+                    painter = painterResource(R.drawable.brand_mark),
+                    contentDescription = null,
+                    modifier = Modifier.size(logoSize)
                 )
-            } else if (state.loading) {
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(if (shortScreen) 6.dp else 10.dp))
                 Text(
-                    "Carregando lista...",
-                    color = Color(0xFFECECEC),
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center
+                    "IPTVX",
+                    color = ThemeYellow,
+                    fontSize = titleSize,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp
                 )
+                Spacer(Modifier.height(if (shortScreen) 14.dp else 22.dp))
+                LoginField(
+                    value = serverUrl,
+                    onValueChange = { serverUrl = it },
+                    label = "Code",
+                    height = fieldHeight,
+                    imeAction = ImeAction.Next,
+                    keyboardActions = KeyboardActions(onNext = { usernameFocus.requestFocus() })
+                )
+                Spacer(Modifier.height(gap))
+                LoginField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = "Username",
+                    height = fieldHeight,
+                    highlight = true,
+                    imeAction = ImeAction.Next,
+                    keyboardActions = KeyboardActions(onNext = { passwordFocus.requestFocus() }),
+                    modifier = Modifier.focusRequester(usernameFocus)
+                )
+                Spacer(Modifier.height(gap))
+                LoginField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = "Password",
+                    height = fieldHeight,
+                    isPassword = true,
+                    imeAction = ImeAction.Done,
+                    keyboardActions = KeyboardActions(onDone = { submitLogin() }),
+                    modifier = Modifier
+                        .focusRequester(passwordFocus)
+                        .onPreviewKeyEvent { event ->
+                            if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                            when (event.key) {
+                                Key.DirectionDown -> {
+                                    loginFocus.requestFocus()
+                                    true
+                                }
+                                Key.Enter, Key.NumPadEnter -> {
+                                    submitLogin()
+                                    true
+                                }
+                                else -> false
+                            }
+                        }
+                )
+                Spacer(Modifier.height(if (shortScreen) 12.dp else 18.dp))
+                Button(
+                    onClick = submitLogin,
+                    enabled = canLogin,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.White,
+                        disabledContainerColor = Color.Transparent,
+                        disabledContentColor = Color(0xFF7D7D7D)
+                    ),
+                    border = BorderStroke(1.dp, Color(0xFFE9E9F2)),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .focusRequester(loginFocus)
+                        .width(minDp(formWidth * 0.64f, 240.dp))
+                        .height(if (shortScreen) 38.dp else 42.dp)
+                ) {
+                    Text(if (state.loading) "Loading" else "Login", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(if (shortScreen) 8.dp else 10.dp))
+                Button(
+                    onClick = onSync,
+                    enabled = !state.loading,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0x2210E0A0),
+                        contentColor = Color(0xFFEFFAF5),
+                        disabledContainerColor = Color(0x1410E0A0),
+                        disabledContentColor = Color(0xFF7D7D7D)
+                    ),
+                    border = BorderStroke(1.dp, Color(0x6631D8A2)),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .width(minDp(formWidth * 0.64f, 240.dp))
+                        .height(if (shortScreen) 36.dp else 40.dp)
+                ) {
+                    Text(if (state.loading) "Atualizando..." else "Atualizar painel", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
+                if (!state.error.isNullOrBlank()) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        state.error,
+                        color = Color(0xFFFF746E),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                } else if (state.loading) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        state.message ?: "Carregando lista...",
+                        color = Color(0xFFECECEC),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
 

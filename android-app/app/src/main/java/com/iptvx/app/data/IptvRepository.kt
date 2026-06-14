@@ -8,6 +8,7 @@ import com.iptvx.app.data.local.FavoriteEntity
 import com.iptvx.app.data.local.IptvDao
 import com.iptvx.app.data.local.WatchHistoryEntity
 import com.iptvx.app.data.model.ContentType
+import com.iptvx.app.data.model.M3uChannel
 import com.iptvx.app.data.model.NowPlayingInfo
 import com.iptvx.app.data.model.PlaybackItem
 import com.iptvx.app.data.model.PlaylistConfig
@@ -18,6 +19,7 @@ import com.iptvx.app.data.parser.M3uParser
 import com.iptvx.app.data.remote.PanelApi
 import com.iptvx.app.data.remote.XtreamClient
 import java.security.MessageDigest
+import java.text.Normalizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -29,6 +31,7 @@ class IptvRepository(
     private val api: PanelApi = PanelApi(),
     private val m3uParser: M3uParser = M3uParser()
 ) {
+    private val diacriticRegex = Regex("\\p{Mn}+")
     val preferencesState = preferences.state
 
     suspend fun registerOrRefresh(): Result<Unit> = withContext(Dispatchers.IO) {
@@ -60,12 +63,24 @@ class IptvRepository(
             val prefs = preferences.state.first()
             val token = requireNotNull(prefs.deviceToken) { "Token do dispositivo ausente. Registre novamente." }
             val response = api.sync(prefs.panelUrl, prefs.deviceId, token)
-            preferences.markPaired()
-            preferences.savePlaylists(response.playlists)
-            response.playlists.forEach { playlist ->
-                runCatching { cachePlaylistContent(playlist) }
+            val localPlaylists = prefs.cachedPlaylists.filter { it.id.startsWith("local-") && it.enabled }
+            val remotePlaylists = response.playlists.filter { it.enabled }
+            val playlists = remotePlaylists + localPlaylists.filter { local ->
+                remotePlaylists.none { it.id == local.id }
             }
-            response.playlists
+            preferences.markPaired()
+            preferences.savePlaylists(playlists)
+            cachePlaylists(playlists)
+            playlists
+        }
+    }
+
+    suspend fun refreshSavedPlaylists(): Result<List<PlaylistConfig>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val playlists = preferences.state.first().cachedPlaylists.filter { it.enabled }
+            require(playlists.isNotEmpty()) { "Nenhuma lista salva." }
+            cachePlaylists(playlists)
+            playlists
         }
     }
 
@@ -120,11 +135,38 @@ class IptvRepository(
         preferences.savePlaylists(playlists)
     }
 
+    suspend fun hasCachedContent(playlists: List<PlaylistConfig>): Boolean = withContext(Dispatchers.IO) {
+        val ids = playlists.map { it.id }
+        ids.isNotEmpty() && dao.channelCountForPlaylists(ids) > 0
+    }
+
+    suspend fun preferredPlayablePlaylist(playlists: List<PlaylistConfig>, preferredId: String?): PlaylistConfig? =
+        withContext(Dispatchers.IO) {
+            val preferred = playlists.firstOrNull { it.id == preferredId }
+            if (preferred != null && dao.channelCountForPlaylist(preferred.id) > 0) {
+                return@withContext preferred
+            }
+            playlists.firstOrNull { dao.channelCountForPlaylist(it.id) > 0 } ?: playlists.firstOrNull()
+        }
+
+    private suspend fun cachePlaylists(playlists: List<PlaylistConfig>) {
+        if (playlists.isEmpty()) return
+        val failures = playlists.mapNotNull { playlist ->
+            runCatching { cachePlaylistContent(playlist) }.exceptionOrNull()
+        }
+        if (failures.size == playlists.size && dao.channelCountForPlaylists(playlists.map { it.id }) == 0) {
+            throw failures.first()
+        }
+    }
+
     private suspend fun cacheM3u(playlist: PlaylistConfig) {
         val url = playlist.m3uUrl ?: return
         val content = api.downloadText(url)
+        require(isM3uContent(content)) { "Lista M3U invalida ou expirada." }
         val parsed = m3uParser.parse(content)
+        require(parsed.isNotEmpty()) { "Lista M3U sem canais." }
         val channels = parsed.map { channel ->
+            val contentType = inferM3uContentType(channel)
             ChannelEntity(
                 id = "${playlist.id}:${stableId(channel.url)}",
                 playlistId = playlist.id,
@@ -134,7 +176,7 @@ class IptvRepository(
                 logoUrl = channel.tvgLogo,
                 category = channel.groupTitle ?: "Sem categoria",
                 tvgId = channel.tvgId,
-                sourceType = ContentType.LIVE.name
+                sourceType = contentType.name
             )
         }
         dao.replacePlaylistChannels(playlist.id, channels)
@@ -285,5 +327,27 @@ class IptvRepository(
             .digest(value.toByteArray())
             .take(10)
             .joinToString("") { "%02x".format(it) }
+    }
+
+    private fun isM3uContent(content: String): Boolean {
+        return content.lineSequence()
+            .firstOrNull { it.trim().isNotBlank() }
+            ?.trim()
+            ?.removePrefix("\uFEFF")
+            ?.startsWith("#EXTM3U") == true
+    }
+
+    private fun inferM3uContentType(channel: M3uChannel): ContentType {
+        val url = channel.url.lowercase()
+        val group = asciiFold(channel.groupTitle.orEmpty().lowercase())
+        return when {
+            "/series/" in url || "series/" in url || "serie" in group -> ContentType.SERIES
+            "/movie/" in url || "movie/" in url || "filme" in group || "movie" in group || "vod" in group -> ContentType.MOVIE
+            else -> ContentType.LIVE
+        }
+    }
+
+    private fun asciiFold(value: String): String {
+        return diacriticRegex.replace(Normalizer.normalize(value, Normalizer.Form.NFD), "")
     }
 }
