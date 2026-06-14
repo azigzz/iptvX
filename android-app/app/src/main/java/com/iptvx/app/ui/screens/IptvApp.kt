@@ -2,12 +2,18 @@ package com.iptvx.app.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -214,18 +221,35 @@ fun IptvApp(state: IptvUiState, viewModel: MainViewModel) {
 
 @Composable
 private fun BootScreen(state: IptvUiState) {
-    Column(
+    val message = when {
+        !state.preferencesLoaded -> "Preparando o app..."
+        state.loading || !state.initialLoadComplete -> "Atualizando canais, filmes e series..."
+        else -> "Abrindo sua TV..."
+    }
+    Box(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+        contentAlignment = Alignment.Center
     ) {
-        Image(painter = painterResource(R.drawable.brand_mark), contentDescription = null, modifier = Modifier.size(82.dp))
-        Text("IPTVX", color = Color(0xFFF4D21B), fontSize = 44.sp, fontWeight = FontWeight.Black)
-        Text(
-            state.message ?: if (state.preferencesLoaded) "Carregando listas..." else "Preparando app...",
-            color = Color(0xFFC9D6E2),
-            fontSize = 16.sp
-        )
+        Column(
+            modifier = Modifier
+                .width(560.dp)
+                .height(310.dp)
+                .background(
+                    Brush.linearGradient(
+                        listOf(Color(0xAA123C4B), Color(0xAA161C35), Color(0xAA3B254B))
+                    ),
+                    RoundedCornerShape(22.dp)
+                )
+                .border(1.dp, Color(0x5531D8A2), RoundedCornerShape(22.dp))
+                .padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically)
+        ) {
+            Image(painter = painterResource(R.drawable.brand_mark), contentDescription = null, modifier = Modifier.size(96.dp))
+            Text("IPTVX", color = Color(0xFFF4D21B), fontSize = 50.sp, fontWeight = FontWeight.Black)
+            Text(message, color = Color(0xFFEAF4FF), fontSize = 17.sp)
+            CircularProgressIndicator(color = Color(0xFF10E0A0), strokeWidth = 3.dp, modifier = Modifier.size(34.dp))
+        }
     }
 }
 

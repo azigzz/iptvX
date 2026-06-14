@@ -3,6 +3,7 @@ package com.iptvx.app.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -29,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
@@ -68,35 +70,14 @@ fun HomeScreen(
         val cardWidth = if (compact) maxWidth - 60.dp else (maxWidth - 108.dp) / 3
 
         Column(Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Image(
-                        painter = painterResource(R.drawable.brand_mark),
-                        contentDescription = null,
-                        modifier = Modifier.size(46.dp)
-                    )
-                    Column {
-                        Text("IPTVX", color = HomeYellow, fontSize = 27.sp, fontWeight = FontWeight.Black)
-                        Text(
-                            state.selectedPlaylist?.name ?: state.playlists.firstOrNull()?.name ?: "Pronto para assistir",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    IconPillButton(icon = R.drawable.ic_sync, text = if (state.loading) "Sync..." else "Atualizar", enabled = !state.loading, onClick = onRefresh)
-                    IconPillButton(icon = R.drawable.ic_settings, text = "Ajustes", onClick = onSettings)
-                }
-            }
+            HomeHero(
+                state = state,
+                compact = compact,
+                onRefresh = onRefresh,
+                onSettings = onSettings
+            )
 
-            Spacer(Modifier.height(if (compact) 26.dp else 42.dp))
+            Spacer(Modifier.height(if (compact) 18.dp else 30.dp))
 
             if (compact) {
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth()) {
@@ -110,6 +91,73 @@ fun HomeScreen(
                     MainFeatureCard("Filmes", "Biblioteca VOD", R.drawable.ic_movies, movieGradient(), Modifier.width(cardWidth).height(cardHeight), onVod)
                     MainFeatureCard("Series", "Temporadas e episodios", R.drawable.ic_series, seriesGradient(), Modifier.width(cardWidth).height(cardHeight), onSeries)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeHero(
+    state: IptvUiState,
+    compact: Boolean,
+    onRefresh: () -> Unit,
+    onSettings: () -> Unit
+) {
+    val playlistName = state.selectedPlaylist?.name ?: state.playlists.firstOrNull()?.name ?: "Sem lista"
+    val heroHeight = if (compact) 122.dp else 138.dp
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(heroHeight)
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        Color(0xFF123C4B),
+                        Color(0xFF123034),
+                        Color(0xFF1C2248),
+                        Color(0xFF3E2458)
+                    )
+                )
+            )
+            .border(1.dp, Color(0x6645D4FF), RoundedCornerShape(16.dp))
+            .padding(horizontal = if (compact) 18.dp else 26.dp, vertical = if (compact) 14.dp else 18.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(if (compact) 14.dp else 18.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.brand_mark),
+                    contentDescription = null,
+                    modifier = Modifier.size(if (compact) 58.dp else 72.dp)
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("IPTVX", color = HomeYellow, fontSize = if (compact) 34.sp else 42.sp, fontWeight = FontWeight.Black)
+                    Text(
+                        "Pronto para assistir",
+                        color = Color(0xFFEAF4FF),
+                        fontSize = if (compact) 15.sp else 17.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        "Lista ativa: $playlistName",
+                        color = Color(0xFFD8E6F2),
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                IconPillButton(icon = R.drawable.ic_sync, text = if (state.loading) "Atualizando" else "Atualizar", enabled = !state.loading, onClick = onRefresh)
+                IconPillButton(icon = R.drawable.ic_settings, text = "Ajustes", onClick = onSettings)
             }
         }
     }
