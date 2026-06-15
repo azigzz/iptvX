@@ -27,6 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <Link href="/devices" className="hover:text-signal">Dispositivos</Link>
                   <Link href="/pair" className="hover:text-signal">Parear</Link>
                   <Link href="/playlists" className="hover:text-signal">Playlists</Link>
+                  <Link href="/download" className="hover:text-signal">Baixar APK</Link>
                   <Link href="/settings" className="hover:text-signal">Configurações</Link>
                   <LogoutButton />
                 </div>

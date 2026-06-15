@@ -23,9 +23,14 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-semibold">Dashboard</h1>
           <p className="mt-2 text-slate-300">Controle de dispositivos, pareamento e sincronização remota.</p>
         </div>
-        <Link className="rounded-md bg-signal px-4 py-2 font-semibold text-ink" href="/pair">
-          Parear dispositivo
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link className="rounded-md border border-line px-4 py-2 font-semibold hover:bg-panelSoft" href="/download">
+            Baixar APK
+          </Link>
+          <Link className="rounded-md bg-signal px-4 py-2 font-semibold text-ink" href="/pair">
+            Parear dispositivo
+          </Link>
+        </div>
       </div>
 
       <section className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

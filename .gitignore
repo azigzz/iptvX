@@ -19,6 +19,7 @@ captures/
 local.properties
 *.apk
 *.aab
+!web-panel/public/downloads/*.apk
 
 # IDE / OS
 .idea/
