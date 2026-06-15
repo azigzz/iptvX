@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { apkDownloadPath, externalApkUrl } from "@/lib/apk-download";
+import { apkDownloadPath } from "@/lib/apk-download";
 
 export default function DownloadPage() {
-  const externalUrl = externalApkUrl();
-
   return (
     <div className="mx-auto grid min-h-screen max-w-3xl content-center px-5 py-10">
       <section className="rounded-2xl border border-line bg-panel p-7 shadow-2xl">
@@ -26,15 +24,6 @@ export default function DownloadPage() {
           </Link>
         </div>
 
-        <div className="mt-7 rounded-lg border border-line bg-panelSoft p-4 text-sm text-slate-300">
-          <p className="font-semibold text-white">Dica para publicar uma nova versao</p>
-          <p className="mt-2">
-            Substitua o arquivo em <code className="text-signal">web-panel/public/downloads/iptvx.apk</code> e publique o site de novo.
-          </p>
-          {externalUrl ? (
-            <p className="mt-2 text-slate-400">Download externo ativo: {externalUrl}</p>
-          ) : null}
-        </div>
       </section>
     </div>
   );
